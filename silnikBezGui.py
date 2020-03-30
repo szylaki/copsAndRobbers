@@ -4,7 +4,7 @@ from random import randrange
 import time
 
 n = 20
-lPolicjantow = 5
+lPolicjantow = 6
 lFurtek = 2
 sFurtki = 2
 lScian = 4
