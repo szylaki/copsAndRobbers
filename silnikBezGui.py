@@ -26,21 +26,27 @@ zlodziej 4
 policjanci 5 
 '''
 
-class Plansza:
+class Swiat:
     def __init__(self, n, lPolicjantow, lFurtek, sFurtki, lScian, dSciany, kZegar):
         for i in range(lFurtek):
             self.furtka[i] = Furtki(sFurtki, n, kZegar) 
         for i in range(lScian):
             self.sciana[i] = Sciany(dSciany, n)
         for i in range(lPolicjantow):
-            self.policjant[i] = Zlodziej()
-        self.zlodziej = Czlowiek()
+            self.policjant[i] = Policjant(n, plansza)
+        self.zlodziej = Zlodziej(n, plansza)
         
     def ruch():
-        poszczegolne ruchy
+        for i in range(lFurtek):
+            self.furtka[i].ruch(n, sFurtki, kZegar, )
+        for i in range(lScian):
+            self.sciana[i].ruch(n, dSciany, kZegar)
+        for i in range(lPolicjantow):
+            self.policjant[i].ruch()
+        self.zlodziej.ruch()
 
 class Furtki:
-    def __init__(self, sFurtki, n):
+    def __init__(self, sFurtki, n, kZegar):
         r1 = randint(0, n-1)
         r2 = randint(0, n-1)
         if (i%2==1):
@@ -182,7 +188,7 @@ class Furtki:
                             self.pozycjaY[i] = self.pozycjaY[i-1]+1            
             
 class Sciany:
-    def __init__(self, dSciany):
+    def __init__(self, n, dSciany):
         self.pozycjaX[0] = randint(1, n-2)
         self.pozycjaY[0] = randint(1, n-2)
         punktWe1 = False
@@ -255,7 +261,7 @@ class Sciany:
                     self.pozycjaY[] = self.kierunkiScian[1]
 
 class Zlodziej:
-    def __init__(self, n):
+    def __init__(self, n, plansza):
         punktWe1 = 0
         while (punktWe1 == 0):
             self.pozycjaX = randint(1, n-2)
@@ -295,7 +301,7 @@ class Zlodziej:
                     punktWe1 = 1
                     
 class Policjant:
-    def __init__(self):
+    def __init__(self, n, dSciany):
         punktWe1 = 0
         while (punktWe1 == 0):
             self.pozycjaX = randint(1, n-2)
@@ -334,287 +340,21 @@ class Policjant:
                     self.pozycjaY-=1
                     punktWe1 = 1
 
+def sprawdzanieUcieczki(Furtki, Zlodziej):
+    for i in range(lFurtek):
+        for j in range(sFurtki):
+            if (Furtki[i][j][0] == Zlodziej[0] and Furtki[i][j][1] == Zlodziej[1]):
+                return 2
 
-
-def checkWinningConditions():
-  # firstly, we check if the thief has escaped
-  for gate in gateTab:
-    for i in range(len(gate.position)):
-      if thiefu.position[0] is wallTab[gate.position[i]].position[0] and thiefu.position[1] is wallTab[gate.position[i]].position[1]:
-        return 0, (2*T - t - 1)
-
-  # next, we check if the policemans have captured the thief
-  for policeman in policemanTab:
-    # creating a surroundings, where the policeman can catch the thief
-    tempPos = copy.deepcopy(policeman.position)
-    catchField = [copy.deepcopy(tempPos)]
-    tempPos[0] += 1
-    catchField.append(copy.deepcopy(tempPos))
-    tempPos[0] -= 2
-    catchField.append(copy.deepcopy(tempPos))
-    tempPos[0] += 1
-    tempPos[1] += 1
-    catchField.append(copy.deepcopy(tempPos))
-    tempPos[1] -= 2
-    catchField.append(copy.deepcopy(tempPos))
-
-    for catchCoords in catchField:
-      if thiefu.position[0] is catchCoords[0] and thiefu.position[1] is catchCoords[1]:
-        return 1, t
-
-  # lastly, the time might have expired
-  if t is T-1:
-    return 0, T
-
-  # ... there battle might not have been settled either
-  return -1, -1
-
-def InitBoard():
-  global thiefu
-  random.seed(3)
-  #creating walls - circled layout in order to easily handle gates movement
-  for i in range(N+2):
-    wallTab.append(Wall(i,0))
-  for i in range(1,N+1):
-    wallTab.append(Wall(N+1,i))
-  for i in range(N+1,0,-1):
-    wallTab.append(Wall(i,N+1))
-  for i in range(N+1,0,-1):
-    wallTab.append(Wall(0,i))
-
-  # creating gates
-  for i in range(gateAmount):
-    newGateCoord = findPlaceForGate(gateTab)
-    gateTab.append(Gate(newGateCoord))
-
-  # creating obstacles
-  for i in range(obstacleAmount):
-    newObstacleOrientation = random.randint(0,1)
-    newObstacleCoords = findPlaceForObstacle(obstacleTab, newObstacleOrientation)
-    obstacleTab.append(Obstacle(newObstacleCoords,newObstacleOrientation))
-
-  # creating a policemans
-  ite = policemanAmount
-  while ite > 0:
-    ite = ite - 1
-    policeCoords = [random.randint(1,N-2), random.randint(1,N-2)]
-    while isPlaceFree(policeCoords, policemanTab=policemanTab, obstacleTab=obstacleTab) is False:
-      policeCoords = [random.randint(1,N-2), random.randint(1,N-2)]
-    #creating new policeman. Second argument is policeman's unique ID - thus, I add some value (20) to make them stand out
-    policemanTab.append(Policeman(policeCoords, ite + 5))
-
-  # creating a thief
-  thiefCoords = [random.randint(1,N-2), random.randint(1,N-2)]
-  thiefu = Thief(thiefCoords)
-  while isPlaceFree(thiefCoords, obstacleTab=obstacleTab, policemanTab=policemanTab, policemanLapki=True) is False:
-    thiefu.position = [random.randint(1,N-2), random.randint(1,N-2)]
-
-  # return constructBoard(wallTab, gateTab, obstacleTab, thiefu, policemanTab)
-  finalDict = getBoardStateDictionary()
-  return finalDict
-
-  # temporary game loop
-  # while True:
-  #   constructBoard(wallTab, gateTab, obstacleTab, thiefu, policemanTab, True)
-  #   time.sleep(0.5)
-  #   for gate in gateTab:
-  #     gate.move()
-  #   for obst in obstacleTab:
-  #     obst.Move(thiefu, policemanTab)
-
-# gateTab = []
-# wallTab = []
-# obstacleTab = []
-# policemanTab = []
-# thiefu = None
-
-# retrieves all the objects' coordinates and stores them as a dictionary of arrays
-def getBoardStateDictionary():
-  gatesCoords = []
-  for gate in gateTab:
-    singleGate = []
-    for i in gate.position:
-      coords = wallTab[i].position
-      singleGate.append(coords)
-    gatesCoords.append(singleGate)
-
-  obstaclesCoords = []
-  for obstacle in obstacleTab:
-    obstaclesCoords.append(obstacle.position)
-
-  policemansCoords = []
-  policemansID = []
-  for policeman in policemanTab:
-    policemansCoords.append(policeman.position)
-    policemansID.append(policeman.ID)
-
-  #building dictionary
-
-  boardDictionary = {
-    'gatesCoords': gatesCoords,
-    'obstaclesCoords': obstaclesCoords,
-    'thiefCoords': thiefu.position
-  }
-  for i,policeman in enumerate(policemanTab):
-    boardDictionary['policeman' + str(i+1)] = {
-      'ID': policeman.ID,
-      'coords': policeman.position
-    }
-
-  return boardDictionary
-
-
-def findPlaceForGate(gateTab):
-  # Finding first new spot
-  gatePos = random.randint(0,realN-1)
-  while isFarEnough(gatePos, gateTab) is False:
-    gatePos = random.randint(0,realN-1)
-
-  newGateTab = [gatePos]
-  if gateWidth < 2:
-    return newGateTab
-  
-  ite = 0
-  while ite < gateWidth-1:
-    gatePos = newGateTab[ite] - 1
-    if gatePos < 0:
-      gatePos = realN-1
-    newGateTab.append(gatePos)
-    ite = ite + 1
-  return newGateTab
-
-def findPlaceForObstacle(obstacleTab, obstacleOrientation):
-  coordY = 0
-  coordX = 0
-  while True:
-    if obstacleOrientation == 0:
-      coordY = random.randint(1,N-2)
-      coordX = random.randint(1,N-obstacleWidth-2)
-      for i in range(obstacleWidth):
-        if isPlaceFree([coordY,coordX+i], obstacleTab=obstacleTab) is False:
-          continue
-    else:
-      coordY = random.randint(1,N-obstacleWidth-2)
-      coordX = random.randint(1,N-2)
-      for i in range(obstacleWidth):
-        if isPlaceFree([coordY+i,coordX], obstacleTab=obstacleTab) is False:
-          continue
-
-    break
-  
-  tab = []
-  for i in range(obstacleWidth):
-    if obstacleOrientation == 0:
-      tab.append([coordY,coordX+i])
-    else:
-      tab.append([coordY+i,coordX])
-
-  return tab
-
-
-
-def isFarEnough(x, gateTab):
-  ite = gateWidth
-  while ite > -1:
-    ite = ite - 1
-    for gatee in gateTab:
-      for i in range(len(gatee.position)):
-        if x == gatee.position[i]:
-          return False
-    x = x - 1
-    if x < 0:
-      x = realN-1
-  return True
-
-def isPlaceFree(coords, thieff=False, policemanTab=False, obstacleTab=False, policemanLapki=False):
-  if thieff is not False:
-    if isEqual(coords, thieff.position):
-      return False
-
-  if policemanTab is not False:
-    for police in policemanTab:
-      if isEqual(coords, police.position):
-        return False
-
-  if policemanLapki is not False:
-    for police in policemanTab:
-      # creating a surroundings, where the policeman can catch the thief
-      tempPos = copy.deepcopy(police.position)
-      catchField = [copy.deepcopy(tempPos)]
-      tempPos[0] += 1
-      catchField.append(copy.deepcopy(tempPos))
-      tempPos[0] -= 2
-      catchField.append(copy.deepcopy(tempPos))
-      tempPos[0] += 1
-      tempPos[1] += 1
-      catchField.append(copy.deepcopy(tempPos))
-      tempPos[1] -= 2
-      catchField.append(copy.deepcopy(tempPos))
-
-      for catchCoords in catchField:
-        if coords[0] is catchCoords[0] and coords[1] is catchCoords[1]:
-          return False
-  
-  if obstacleTab is not False:
-    for obst in obstacleTab:
-      for j in range(len(obst.position)):
-        if isEqual(coords, obst.position[j]):
-          return False
-
-  return True
-
-def isEqual(A,B):
-  if A[0] == B[0] and A[1] == B[1]:
-    return True
-  return False
-
-def constructBoard(wallTab, gateTab, obstacleTab, thieff, policemanTab, draw=False):
-  board = np.zeros([N+2,N+2])
-  for wall in wallTab:
-    board[wall.position[0],wall.position[1]] = 1
-
-  for gate in gateTab:
-    for i in gate.position:
-      coords = wallTab[i].position
-      board[coords[0], coords[1]] = 2
-
-  for obst in obstacleTab:
-    for i in range(len(obst.position)):
-      coords = obst.position[i]
-      board[coords[0], coords[1]] = 3
-
-  board[thieff.position[0], thieff.position[1]] = 4
-
-  for pol in policemanTab:
-    board[pol.position[0], pol.position[1]] = pol.ID
-
-  if draw == True:
-    if colorful == 1:
-      printColorful(board)
-    else:
-      print(board)
-      print('')
-
-  return board
-
-def printColorful(board):
-  _ = system('cls')
-  toPrint = ''
-  for i in range(len(board)):
-    for j in range(len(board)):
-      x = int(board[i][j])
-      if x == 0:
-        toPrint = toPrint + ' ' + str(x) + ' '
-      elif x == 1:
-        toPrint = toPrint  + ' ' + str(x) + ' '
-      elif x == 2:
-          toPrint = toPrint + ' ' + str(x) + ' '
-      elif x == 3:
-          toPrint = toPrint + ' ' + str(x) + ' '
-      elif x == 4:
-          toPrint = toPrint + ' ' + str(x) + ' '
-      else:
-          toPrint = toPrint + ' ' + x + ' '
-    toPrint = toPrint + '\n'
-  print(toPrint)
-  print('')
+def sprawdzanieZlapania(Zlodziej, Policjanci):
+    for i in range(lPolicjantow):
+        if (Policjanci[i][0] == Zlodziej[0] and Policjanci[i][1] == Zlodziej[1]):
+            return 3
+        elif (Policjanci[i][0]+1 == Zlodziej[0] and Policjanci[i][1] == Zlodziej[1]):
+            return 3
+        elif (Policjanci[i][0]-1 == Zlodziej[0] and Policjanci[i][1] == Zlodziej[1]):
+            return 3
+        elif (Policjanci[i][1]+1 == Zlodziej[1] and Policjanci[i][0] == Zlodziej[0]):
+            return 3
+        elif (Policjanci[i][1]-1 == Zlodziej[1] and Policjanci[i][0] == Zlodziej[0]):
+            return 3
