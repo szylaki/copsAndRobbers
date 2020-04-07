@@ -2,10 +2,10 @@ from PyQt5.QtWidgets import QApplication, QWidget
 
 class Gui(QWidget):
     
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, n):
+        super().__init__()
         
-        #self.n = n
+        self.n = n
         self.interface()
         self.grid = True
         
