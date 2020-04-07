@@ -29,6 +29,12 @@ zlodziej 4
 policjanci 5 
 '''
 
+GRANICA = 1
+FURTKA = 2
+SCIANA = 3
+ZLODZIEJ = 4
+POLICJANT = 5
+
 class Swiat:
     def __init__(self, n, lPolicjantow, lFurtek, sFurtki, lScian, dSciany, kZegar):
         self.plansza = np.zeros((n, n))
