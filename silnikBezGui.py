@@ -52,8 +52,10 @@ class Swiat:
         for i in range(lPolicjantow):
             self.policjant[i].ruch(n, listaPlansz[t])
         self.zlodziej.ruch(n, listaPlansz[t])
+        self.podstawienie()
 
     def podstawienie(self):
+        self.plansza = np.zeros((n, n))
         for i in range(n):
             self.plansza[i][0]=1
             self.plansza[i][n-1]=1
