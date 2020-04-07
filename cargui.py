@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QApplication, QWidget
 
 class Gui(QWidget):
     
-    def __init__(self, n):
+    def __init__(self, n, world):
         super().__init__()
         
         self.n = n
