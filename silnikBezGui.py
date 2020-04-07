@@ -19,8 +19,6 @@ Psr = 0.75 #prawdopodbienstwo ruchu sciany
 Psz = 0.05 ##prawdopodbienstwo zmiany kierunku ruchu sciany
 kZegar = 1
 
-
-
 '''Oznaczenia na planszy
 bramki 1
 furtki 2
@@ -233,17 +231,15 @@ class Sciany:
                     for j in range(dSciany-1, 0, -1):
                         self.pozycjaX[i-1] = self.pozycjaX[i]
                         self.pozycjaY[i-1] = self.pozycjaY[i]-1
-        punktWe1 = False
-        while(punktWe1 == False):
-            r = randint(1, 4)
-            if (r == 1):
-                self.kierunkiScian = [1, 0]
-            elif (r == 2):
-                self.kierunkiScian = [0, 1]
-            elif (r==3): 
-                self.kierunkiScian = [-1, 0]
-            elif (r==4):
-                self.kierunkiScian = [0, -1] 
+        r = randint(1, 4)
+        if (r == 1):
+            self.kierunkiScian = [1, 0]
+        elif (r == 2):
+            self.kierunkiScian = [0, 1]
+        elif (r==3): 
+            self.kierunkiScian = [-1, 0]
+        elif (r==4):
+            self.kierunkiScian = [0, -1] 
     def ruch(self, n, dSciany, kZegar, plansza):
         if random.random() < Psz:
             r = randint(1, 4)
