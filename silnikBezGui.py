@@ -402,6 +402,9 @@ def main():
     punktyZlodzieja = T
     swiat = Swiat()
     listaPlansz = []
+	
+	gui = Gui()
+	
     for t in range(T):
         tStart = time.time()
         print(swiat.plansza)#gui
