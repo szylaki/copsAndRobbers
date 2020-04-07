@@ -3,22 +3,20 @@ import random
 from random import randint
 import time
 
-import sys
-import copy
-
-
 n = 20
-lPolicjantow = 5
+T = 20 #przykladowo
+k = 5
 lFurtek = 2
 sFurtki = 2
+kZegar = 1 #kierunek ruchu furtek
 lScian = 4
 dSciany = 4
-T = 20 #przykladowo
+lPolicjantow = 5
+
 Pfr = 0.5 #prawdopodbienstwo ruchu furtki
 Pfz = 0.01 #prawdopodbienstwo zmiany kierunku ruchu furtki
 Psr = 0.75 #prawdopodbienstwo ruchu sciany
 Psz = 0.05 ##prawdopodbienstwo zmiany kierunku ruchu sciany
-kZegar = 1
 
 '''Oznaczenia na planszy
 bramki 1
@@ -29,29 +27,34 @@ policjanci 5
 '''
 
 class Swiat:
-    def __init__(self, n, lPolicjantow, lFurtek, sFurtki, lScian, dSciany, kZegar):
+    def __init__(self):
         self.plansza = np.zeros((n, n))
         self.furtka = []
         self.sciana = []
         self.policjant = []
         
         for i in range(lFurtek):
-            self.furtka.append(Furtki(sFurtki, n, kZegar))
+            self.furtka.append(Furtki())
         for i in range(lScian):
-            self.sciana.append(Sciany(dSciany, n))
+            self.sciana.append(Sciany())
         for i in range(lPolicjantow):
-            self.policjant.append(Policjant(n, self.plansza))
-        self.zlodziej = Zlodziej(n, self.plansza)
+            self.policjant.append(Policjant(self.plansza))
+        self.zlodziej = Zlodziej(self.plansza)
         self.podstawienie()
         
-    def ruch(self, n, lPolicjantow, lFurtek, sFurtki, lScian, dSciany, kZegar, listaPlansz, t):
+    def ruch(self, listaPlansz, t):
+        if (t%5 == 1):
+            self.zlodziej.planowanieRuchu(listaPlansz)
+            #wielowatkowosc
+            for i in range(lPolicjantow):
+                self.policjant[i].planowanieRuchu(listaPlansz)
         for i in range(lFurtek):
-            self.furtka[i].ruch(n, sFurtki, kZegar)
+            self.furtka[i].ruch(kZegar)
         for i in range(lScian):
-            self.sciana[i].ruch(n, dSciany, kZegar, listaPlansz[t])
+            self.sciana[i].ruch(listaPlansz[t])
         for i in range(lPolicjantow):
-            self.policjant[i].ruch(n, listaPlansz[t])
-        self.zlodziej.ruch(n, listaPlansz[t])
+            self.policjant[i].ruch(listaPlansz[t], t)
+        self.zlodziej.ruch(listaPlansz[t], t)
         self.podstawienie()
 
     def podstawienie(self):
@@ -69,7 +72,7 @@ class Swiat:
         for i in range(lFurtek):
             for j in range(sFurtki):
                 a = int(self.furtka[i].pozycjaX[j])
-                b = int(self.sciana[i].pozycjaY[j])
+                b = int(self.furtka[i].pozycjaY[j])
                 self.plansza[a][b] = 2
         for i in range(lPolicjantow):
             a = int(self.policjant[i].pozycjaX)
@@ -81,7 +84,7 @@ class Swiat:
         
     
 class Furtki:
-    def __init__(self, sFurtki, n, kZegar):
+    def __init__(self):
         r1 = randint(0, n-1)
         r2 = randint(0, n-1)
         self.pozycjaX = []
@@ -126,8 +129,8 @@ class Furtki:
                         self.pozycjaX.append(self.pozycjaX[i-1]-1)
                         self.pozycjaY.append(self.pozycjaY[i-1])
                     else:
-                        self.pozycjaX[i] = self.pozycjaX[i-1]
-                        self.pozycjaY[i] = self.pozycjaY[i-1]+1        
+                        self.pozycjaX.append(self.pozycjaX[i-1])
+                        self.pozycjaY.append(self.pozycjaY[i-1]+1)        
         elif (kZegar==-1):
                 for i in range(1, sFurtki):
                     if (self.pozycjaX[i-1] == 0):
@@ -158,74 +161,75 @@ class Furtki:
                         else:
                             self.pozycjaX.append(self.pozycjaX[i-1])
                             self.pozycjaY.append(self.pozycjaY[i-1]+1) 
-    
-    def ruch(self, n, sFurtki, kZegar):
+        
+        
+    def ruch(self, kZegar):
         if random.random() < Pfz:
             kZegar *=(-1)
         if random.random() < Pfr:
             if (kZegar==1):
                 for i in range(sFurtki):
-                    if (self.pozycjaX[i-1] == 0):
-                        if (self.pozycjaY[i-1]+1<n):
-                            self.pozycjaX[i] = self.pozycjaX[i-1]
-                            self.pozycjaY[i] = self.pozycjaY[i-1]+1
+                    if (self.pozycjaX[i] == 0):
+                        if (self.pozycjaY[i]+1<n):
+                            self.pozycjaX[i] = self.pozycjaX[i]
+                            self.pozycjaY[i] = self.pozycjaY[i]+1
                         else:
-                            self.pozycjaX[i] = self.pozycjaX[i-1]+1
-                            self.pozycjaY[i] = self.pozycjaY[i-1]
-                    elif (self.pozycjaY[i-1] == n-1):
+                            self.pozycjaX[i] = self.pozycjaX[i]+1
+                            self.pozycjaY[i] = self.pozycjaY[i]
+                    elif (self.pozycjaY[i] == n-1):
                         if (self.pozycjaX[i]+1<n):
-                            self.pozycjaX[i] = self.pozycjaX[i-1]+1
-                            self.pozycjaY[i] = self.pozycjaY[i-1]
+                            self.pozycjaX[i] = self.pozycjaX[i]+1
+                            self.pozycjaY[i] = self.pozycjaY[i]
                         else:
-                            self.pozycjaX[i] = self.pozycjaX[i-1]
-                            self.pozycjaY[i] = self.pozycjaY[i-1]-1
-                    elif (self.pozycjaX[i-1] == n-1):
-                        if (self.pozycjaY[i-1]-1>0):
-                            self.pozycjaX[i] = self.pozycjaX[i-1]
-                            self.pozycjaY[i] = self.pozycjaY[i-1]-1
+                            self.pozycjaX[i] = self.pozycjaX[i]
+                            self.pozycjaY[i] = self.pozycjaY[i]-1
+                    elif (self.pozycjaX[i] == n-1):
+                        if (self.pozycjaY[i]-1>0):
+                            self.pozycjaX[i] = self.pozycjaX[i]
+                            self.pozycjaY[i] = self.pozycjaY[i]-1
                         else:
-                            self.pozycjaX[i] = self.pozycjaX[i-1]-1
-                            self.pozycjaY[i] = self.pozycjaY[i-1]
+                            self.pozycjaX[i] = self.pozycjaX[i]-1
+                            self.pozycjaY[i] = self.pozycjaY[i]
                     elif (self.pozycjaY[i-1] == 0):
-                        if (self.pozycjaX[i]-1>0):
-                            self.pozycjaX[i] = self.pozycjaX[i-1]-1
-                            self.pozycjaY[i] = self.pozycjaY[i-1]
+                        if (self.pozycjaX[i]-1>=0):
+                            self.pozycjaX[i] = self.pozycjaX[i]-1
+                            self.pozycjaY[i] = self.pozycjaY[i]
                         else:
-                            self.pozycjaX[i] = self.pozycjaX[i-1]
-                            self.pozycjaY[i] = self.pozycjaY[i-1]+1
+                            self.pozycjaX[i] = self.pozycjaX[i]
+                            self.pozycjaY[i] = self.pozycjaY[i]+1
             elif (kZegar==-1):
                 for i in range(sFurtki):
-                    if (self.pozycjaX[i-1] == 0):
-                        if (self.pozycjaY[i-1]-1>=n):
-                            self.pozycjaX[i] = self.pozycjaX[i-1]
-                            self.pozycjaY[i] = self.pozycjaY[i-1]-1
+                    if (self.pozycjaX[i] == 0):
+                        if (self.pozycjaY[i]-1>=n):
+                            self.pozycjaX[i] = self.pozycjaX[i]
+                            self.pozycjaY[i] = self.pozycjaY[i]-1
                         else:
-                            self.pozycjaX[i] = self.pozycjaX[i-1]+1
-                            self.pozycjaY[i] = self.pozycjaY[i-1]
-                    elif (self.pozycjaY[i-1] == 0):
+                            self.pozycjaX[i] = self.pozycjaX[i]+1
+                            self.pozycjaY[i] = self.pozycjaY[i]
+                    elif (self.pozycjaY[i] == 0):
                         if (self.pozycjaX[i]+1<n):
-                            self.pozycjaX[i] = self.pozycjaX[i-1]+1
-                            self.pozycjaY[i] = self.pozycjaY[i-1]
+                            self.pozycjaX[i] = self.pozycjaX[i]+1
+                            self.pozycjaY[i] = self.pozycjaY[i]
                         else:
-                            self.pozycjaX[i] = self.pozycjaX[i-1]
-                            self.pozycjaY[i] = self.pozycjaY[i-1]+1
-                    elif (self.pozycjaX[i-1] == n-1):
-                        if (self.pozycjaY[i-1]+1<n):
-                            self.pozycjaX[i] = self.pozycjaX[i-1]
-                            self.pozycjaY[i] = self.pozycjaY[i-1]+1
+                            self.pozycjaX[i] = self.pozycjaX[i]
+                            self.pozycjaY[i] = self.pozycjaY[i]+1
+                    elif (self.pozycjaX[i] == n-1):
+                        if (self.pozycjaY[i]+1<n):
+                            self.pozycjaX[i] = self.pozycjaX[i]
+                            self.pozycjaY[i] = self.pozycjaY[i]+1
                         else:
-                            self.pozycjaX[i] = self.pozycjaX[i-1]-1
-                            self.pozycjaY[i] = self.pozycjaY[i-1]
-                    elif (self.pozycjaY[i-1] == n-1):
+                            self.pozycjaX[i] = self.pozycjaX[i]-1
+                            self.pozycjaY[i] = self.pozycjaY[i]
+                    elif (self.pozycjaY[i] == n-1):
                         if (self.pozycjaX[i]-1>=0):
-                            self.pozycjaX[i] = self.pozycjaX[i-1]-1
-                            self.pozycjaY[i] = self.pozycjaY[i-1]
+                            self.pozycjaX[i] = self.pozycjaX[i]-1
+                            self.pozycjaY[i] = self.pozycjaY[i]
                         else:
-                            self.pozycjaX[i] = self.pozycjaX[i-1]
-                            self.pozycjaY[i] = self.pozycjaY[i-1]+1            
+                            self.pozycjaX[i] = self.pozycjaX[i]
+                            self.pozycjaY[i] = self.pozycjaY[i]+1            
             
 class Sciany:
-    def __init__(self, dSciany, n):
+    def __init__(self):
         self.pozycjaX = []
         self.pozycjaY = []
         self.kierunkiScian = []
@@ -239,7 +243,7 @@ class Sciany:
                     punktWe1 = True
                     for i in range(1, dSciany):
                         self.pozycjaX.append(self.pozycjaX[i-1]+1)
-                        self.pozycjaY.append(self.pozycjaY[i-1])
+                        self.pozycjaY.append(self.pozycjaY[i-1])         
             elif (r==1):
                 if ((self.pozycjaY[0] + dSciany-1)<(n-1)):
                     punktWe1 = True
@@ -252,9 +256,7 @@ class Sciany:
                     for i in range(1, dSciany):
                         self.pozycjaX.append(self.pozycjaX[0])
                         self.pozycjaY.append(self.pozycjaY[0])
-                    self.pozycjaX[dSciany-1] = self.pozycjaX[0]
-                    self.pozycjaY[dSciany-1] = self.pozycjaY[0]
-                    for j in range(dSciany-1, 0, -1):
+                    for i in range(dSciany-1, 0, -1):
                         self.pozycjaX[i-1] = self.pozycjaX[i]-1
                         self.pozycjaY[i-1] = self.pozycjaY[i]
             elif (r==3):
@@ -263,9 +265,7 @@ class Sciany:
                     for i in range(1, dSciany):
                         self.pozycjaX.append(self.pozycjaX[0])
                         self.pozycjaY.append(self.pozycjaY[0])
-                    self.pozycjaX[dSciany-1] = self.pozycjaX[0]
-                    self.pozycjaY[dSciany-1] = self.pozycjaY[0]
-                    for j in range(dSciany-1, 0, -1):
+                    for i in range(dSciany-1, 0, -1):
                         self.pozycjaX[i-1] = self.pozycjaX[i]
                         self.pozycjaY[i-1] = self.pozycjaY[i]-1
         r = randint(1, 4)
@@ -276,8 +276,10 @@ class Sciany:
         elif (r==3): 
             self.kierunkiScian = [-1, 0]
         elif (r==4):
-            self.kierunkiScian = [0, -1] 
-    def ruch(self, n, dSciany, kZegar, plansza):
+            self.kierunkiScian = [0, -1]
+
+            
+    def ruch(self, plansza):
         if random.random() < Psz:
             r = randint(1, 4)
             if (r == 1):
@@ -301,124 +303,126 @@ class Sciany:
                     punktWe2 += 1
             if (punktWe2 == dSciany):
                 for i in range(dSciany):
-                    self.pozycjaX[i] = self.kierunkiScian[0]
-                    self.pozycjaY[i] = self.kierunkiScian[1]
+                    self.pozycjaX[i]+= self.kierunkiScian[0]
+                    self.pozycjaY[i]+= self.kierunkiScian[1]
+            
 
 class Zlodziej:
-    def __init__(self, n, plansza):
+    def __init__(self, plansza):
         punktWe1 = 0
         while (punktWe1 == 0):
             self.pozycjaX = randint(1, n-2)
             self.pozycjaY = randint(1, n-2)
             if (plansza[int(self.pozycjaX)][int(self.pozycjaY)]==0):
                 punktWe1 = 1
+        self.planRuchu = [0]
         
-    def ruch(self, n, plansza):
-        punktWe1 = 0
-        while (punktWe1 == 0):
-            r = randint(0, 4)
-            if (r==0):
-                punktWe1 = 1
-            if (r==1):
-                a = int(self.pozycjaX+1)
-                b = int(self.pozycjaY)
-                if (plansza[a][b] == 0 or plansza[a][b] == 2):
-                    self.pozycjaX+=1
-                    punktWe1 = 1
-            elif (r==2):
-                a = int(self.pozycjaX)
-                b = int(self.pozycjaY+1)
-                if (plansza[a][b] == 0 or plansza[a][b] == 2):
-                    self.pozycjaY+=1
-                    punktWe1 = 1
-            elif (r==3):
-                a = int(self.pozycjaX-1)
-                b = int(self.pozycjaY)
-                if (plansza[a][b] == 0 or plansza[a][b] == 2):
-                    self.pozycjaX-=1
-                    punktWe1 = 1
-            elif (r==4):
-                a = int(self.pozycjaX)
-                b = int(self.pozycjaY-1)
-                if (plansza[a][b] == 0 or plansza[a][b] == 2):
-                    self.pozycjaY-=1
-                    punktWe1 = 1
+    def ruch(self, plansza, t):
+        if (self.planRuchu[t] == 1):
+            a = int(self.pozycjaX+1)
+            b = int(self.pozycjaY)
+            if (plansza[a][b] == 0 or plansza[a][b] == 2):
+                self.pozycjaX+=1
+        elif (self.planRuchu[t] == 2):
+            a = int(self.pozycjaX)
+            b = int(self.pozycjaY+1)
+            if (plansza[a][b] == 0 or plansza[a][b] == 2):
+                self.pozycjaY+=1
+        elif (self.planRuchu[t] == 3):
+            a = int(self.pozycjaX-1)
+            b = int(self.pozycjaY)
+            if (plansza[a][b] == 0 or plansza[a][b] == 2):
+                self.pozycjaX-=1
+        elif (self.planRuchu[t] == 4):
+            a = int(self.pozycjaX)
+            b = int(self.pozycjaY-1)
+            if (plansza[a][b] == 0 or plansza[a][b] == 2):
+                self.pozycjaY-=1
+        
+    def planowanieRuchu(self, listaPlansz):
+        for i in range(k):
+            self.planRuchu.append(randint(0, 4))
                     
 class Policjant:
-    def __init__(self, n, plansza):
+    def __init__(self, plansza):
         punktWe1 = 0
         while (punktWe1 == 0):
             self.pozycjaX = randint(1, n-2)
             self.pozycjaY = randint(1, n-2)
             if (plansza[int(self.pozycjaX)][int(self.pozycjaY)]==0):
                 punktWe1 = 1
+        self.planRuchu = [0]
         
-    def ruch(self, n, plansza) :
-        punktWe1 = 0
-        while (punktWe1 == 0):
-            r = randint(0, 4)
-            if (r==0):
-                punktWe1 = 1
-            if (r==1):
-                a = int(self.pozycjaX+1)
-                b = int(self.pozycjaY)
-                if (plansza[a][b] == 0):
-                    self.pozycjaX+=1
-                    punktWe1 = 1
-            elif (r==2):
-                a = int(self.pozycjaX)
-                b = int(self.pozycjaY+1)
-                if (plansza[a][b] == 0):
-                    self.pozycjaY+=1
-                    punktWe1 = 1
-            elif (r==3):
-                a = int(self.pozycjaX-1)
-                b = int(self.pozycjaY)
-                if (plansza[a][b] == 0):
-                    self.pozycjaX-=1
-                    punktWe1 = 1
-            elif (r==4):
-                a = int(self.pozycjaX)
-                b = int(self.pozycjaY-1)
-                if (plansza[a][b] == 0):
-                    self.pozycjaY-=1
-                    punktWe1 = 1
+    def ruch(self, plansza, t) :
+        if (self.planRuchu[t] == 1):
+            a = int(self.pozycjaX+1)
+            b = int(self.pozycjaY)
+            if (plansza[a][b] == 0):
+                self.pozycjaX+=1
+        elif (self.planRuchu[t] == 2):
+            a = int(self.pozycjaX)
+            b = int(self.pozycjaY+1)
+            if (plansza[a][b] == 0):
+                self.pozycjaY+=1
+        elif (self.planRuchu[t] == 3):
+            a = int(self.pozycjaX-1)
+            b = int(self.pozycjaY)
+            if (plansza[a][b] == 0):
+                self.pozycjaX-=1
+        elif (self.planRuchu[t] == 4):
+            a = int(self.pozycjaX)
+            b = int(self.pozycjaY-1)
+            if (plansza[a][b] == 0):
+                self.pozycjaY-=1
+    
+    def planowanieRuchu(self, listaPlansz):
+        for i in range(k):
+            self.planRuchu.append(randint(0, 4))
 
-def sprawdzanieUcieczki(Furtki, Zlodziej):
+def sprawdzanieZlapania(zlodziej, policjant):
+    for i in range(lPolicjantow):
+        if (policjant[i].pozycjaX == zlodziej.pozycjaX and policjant[i].pozycjaY == zlodziej.pozycjaY):
+            return 3
+        elif (policjant[i].pozycjaX+1 == zlodziej.pozycjaX and policjant[i].pozycjaY == zlodziej.pozycjaY):
+            return 3
+        elif (policjant[i].pozycjaX-1 == zlodziej.pozycjaX and policjant[i].pozycjaY == zlodziej.pozycjaY):
+            return 3
+        elif (policjant[i].pozycjaY+1 == zlodziej.pozycjaX and policjant[i].pozycjaX == zlodziej.pozycjaY):
+            return 3
+        elif (policjant[i].pozycjaY-1 == zlodziej.pozycjaX and policjant[i].pozycjaX == zlodziej.pozycjaY):
+            return 3
+        
+def sprawdzanieUcieczki(furtka, zlodziej):
     for i in range(lFurtek):
         for j in range(sFurtki):
-            if (Furtki[i][j][0] == Zlodziej[0] and Furtki[i][j][1] == Zlodziej[1]):
-                return 2
+            if (furtka[i].pozycjaX[j] == zlodziej.pozycjaX and furtka[i].pozycjaY[j] == zlodziej.pozycjaY):
+                return 2       
 
-def sprawdzanieZlapania(Zlodziej, Policjanci):
-    for i in range(lPolicjantow):
-        if (Policjanci[i][0] == Zlodziej[0] and Policjanci[i][1] == Zlodziej[1]):
-            return 3
-        elif (Policjanci[i][0]+1 == Zlodziej[0] and Policjanci[i][1] == Zlodziej[1]):
-            return 3
-        elif (Policjanci[i][0]-1 == Zlodziej[0] and Policjanci[i][1] == Zlodziej[1]):
-            return 3
-        elif (Policjanci[i][1]+1 == Zlodziej[1] and Policjanci[i][0] == Zlodziej[0]):
-            return 3
-        elif (Policjanci[i][1]-1 == Zlodziej[1] and Policjanci[i][0] == Zlodziej[0]):
-            return 3
-        
 def main():
-    swiat = Swiat(n, lPolicjantow, lFurtek, sFurtki, lScian, dSciany, kZegar)
+    punktyZlodzieja = T
+    swiat = Swiat()
     listaPlansz = []
-    listaPlansz.append(swiat.plansza)
     for t in range(T):
         tStart = time.time()
-        swiat.ruch(n, lPolicjantow, lFurtek, sFurtki, lScian, dSciany, kZegar, listaPlansz, t)
+        print(swiat.plansza)
         listaPlansz.append(swiat.plansza)
-        #sprawdzanieZlapania(swiat.furtka.pozycjaX, swiat.furtka)
-        #sprawdzanieUcieczki()
+        swiat.ruch(listaPlansz, t)
+        if (sprawdzanieZlapania(swiat.zlodziej, swiat.policjant) == 3):
+            punktyZlodzieja = t
+            print("Zlodziej zostal zlapany") #gui
+            break
+        if (sprawdzanieUcieczki(swiat.furtka, swiat.zlodziej) == 2):
+            if (t+1 == T):
+                punktyZlodzieja = T-1
+            else:
+                punktyZlodzieja = 2*T-t-1
+            print("Zlodziej uciekl") #gui
+            break
         tStop = time.time()
         tDelta = tStop - tStart
-        print(swiat.plansza)
         if (tDelta < 0.4):
             time.sleep(1 - tDelta)
-        
+    print("Uzyskane punkty:", punktyZlodzieja) #gui
         
 if __name__ == '__main__':
     main()        
