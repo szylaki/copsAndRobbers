@@ -1,7 +1,8 @@
 import numpy as np
+import random
 from random import randint
 import time
-import random
+
 import sys
 import copy
 
@@ -27,12 +28,6 @@ zlodziej 4
 policjanci 5 
 '''
 
-GRANICA = 1
-FURTKA = 2
-SCIANA = 3
-ZLODZIEJ = 4
-POLICJANT = 5
-
 class Swiat:
     def __init__(self, n, lPolicjantow, lFurtek, sFurtki, lScian, dSciany, kZegar):
         self.plansza = np.zeros((n, n))
@@ -47,16 +42,16 @@ class Swiat:
         for i in range(lPolicjantow):
             self.policjant.append(Policjant(n, self.plansza))
         self.zlodziej = Zlodziej(n, self.plansza)
-        self.podstawienie(self)
+        self.podstawienie()
         
-    def ruch(self, n, lPolicjantow, lFurtek, sFurtki, lScian, dSciany, kZegar, listaSwiatow, t):
+    def ruch(self, n, lPolicjantow, lFurtek, sFurtki, lScian, dSciany, kZegar, listaPlansz, t):
         for i in range(lFurtek):
             self.furtka[i].ruch(n, sFurtki, kZegar)
         for i in range(lScian):
-            self.sciana[i].ruch(n, dSciany, kZegar, listaSwiatow[t])
+            self.sciana[i].ruch(n, dSciany, kZegar, listaPlansz[t])
         for i in range(lPolicjantow):
-            self.policjant[i].ruch(n, listaSwiatow[t+1])
-        self.zlodziej.ruch(n, listaSwiatow[t+1])
+            self.policjant[i].ruch(n, listaPlansz[t])
+        self.zlodziej.ruch(n, listaPlansz[t])
 
     def podstawienie(self):
         for i in range(n):
@@ -162,7 +157,7 @@ class Furtki:
                             self.pozycjaX.append(self.pozycjaX[i-1])
                             self.pozycjaY.append(self.pozycjaY[i-1]+1) 
     
-    def ruch(self, kZegar):
+    def ruch(self, n, sFurtki, kZegar):
         if random.random() < Pfz:
             kZegar *=(-1)
         if random.random() < Pfr:
@@ -228,7 +223,7 @@ class Furtki:
                             self.pozycjaY[i] = self.pozycjaY[i-1]+1            
             
 class Sciany:
-    def __init__(self, n, dSciany):
+    def __init__(self, dSciany, n):
         self.pozycjaX = []
         self.pozycjaY = []
         self.kierunkiScian = []
@@ -243,23 +238,29 @@ class Sciany:
                     for i in range(1, dSciany):
                         self.pozycjaX.append(self.pozycjaX[i-1]+1)
                         self.pozycjaY.append(self.pozycjaY[i-1])
-            if (r==1):
+            elif (r==1):
                 if ((self.pozycjaY[0] + dSciany-1)<(n-1)):
                     punktWe1 = True
                     for i in range(1, dSciany):
-                        self.pozycjaX[i] = self.pozycjaX[i-1]
-                        self.pozycjaY[i] = self.pozycjaY[i-1]+1
-            if (r==2):
+                        self.pozycjaX.append(self.pozycjaX[i-1])
+                        self.pozycjaY.append(self.pozycjaY[i-1]+1)
+            elif (r==2):
                 if ((self.pozycjaX[0] - dSciany-1)>0):
                     punktWe1 = True
+                    for i in range(1, dSciany):
+                        self.pozycjaX.append(self.pozycjaX[0])
+                        self.pozycjaY.append(self.pozycjaY[0])
                     self.pozycjaX[dSciany-1] = self.pozycjaX[0]
                     self.pozycjaY[dSciany-1] = self.pozycjaY[0]
                     for j in range(dSciany-1, 0, -1):
                         self.pozycjaX[i-1] = self.pozycjaX[i]-1
                         self.pozycjaY[i-1] = self.pozycjaY[i]
-            if (r==3):
+            elif (r==3):
                 if ((self.pozycjaY[0] - dSciany-1)>0):
                     punktWe1 = True
+                    for i in range(1, dSciany):
+                        self.pozycjaX.append(self.pozycjaX[0])
+                        self.pozycjaY.append(self.pozycjaY[0])
                     self.pozycjaX[dSciany-1] = self.pozycjaX[0]
                     self.pozycjaY[dSciany-1] = self.pozycjaY[0]
                     for j in range(dSciany-1, 0, -1):
@@ -342,7 +343,7 @@ class Zlodziej:
                     punktWe1 = 1
                     
 class Policjant:
-    def __init__(self, n, dSciany, plansza):
+    def __init__(self, n, plansza):
         punktWe1 = 0
         while (punktWe1 == 0):
             self.pozycjaX = randint(1, n-2)
@@ -406,13 +407,13 @@ def main():
     listaPlansz.append(swiat.plansza)
     for t in range(T):
         tStart = time.time()
-        swiat.ruch(listaPlansz, t)
+        swiat.ruch(n, lPolicjantow, lFurtek, sFurtki, lScian, dSciany, kZegar, listaPlansz, t)
         listaPlansz.append(swiat.plansza)
-        sprawdzanieZlapania()
-        sprawdzanieUcieczki()
+        #sprawdzanieZlapania(swiat.furtka.pozycjaX, swiat.furtka)
+        #sprawdzanieUcieczki()
         tStop = time.time()
         tDelta = tStop - tStart
-        print(swiat)
+        print(swiat.plansza)
         if (tDelta < 0.4):
             time.sleep(1 - tDelta)
         
