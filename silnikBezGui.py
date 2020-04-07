@@ -39,6 +39,7 @@ class Swiat:
         self.furtka = []
         self.sciana = []
         self.policjant = []
+        
         for i in range(lFurtek):
             self.furtka.append(Furtki(sFurtki, n, kZegar))
         for i in range(lScian):
@@ -46,6 +47,7 @@ class Swiat:
         for i in range(lPolicjantow):
             self.policjant.append(Policjant(n, self.plansza))
         self.zlodziej = Zlodziej(n, self.plansza)
+        self.podstawienie(self)
         
     def ruch(self, n, lPolicjantow, lFurtek, sFurtki, lScian, dSciany, kZegar, listaSwiatow, t):
         for i in range(lFurtek):
@@ -56,6 +58,31 @@ class Swiat:
             self.policjant[i].ruch(n, listaSwiatow[t+1])
         self.zlodziej.ruch(n, listaSwiatow[t+1])
 
+    def podstawienie(self):
+        for i in range(n):
+            self.plansza[i][0]=1
+            self.plansza[i][n-1]=1
+            self.plansza[0][i]=1
+            self.plansza[n-1][i]=1
+        for i in range(lScian):
+            for j in range(dSciany):
+                a = int(self.sciana[i].pozycjaX[j])
+                b = int(self.sciana[i].pozycjaY[j])
+                self.plansza[a][b] = 3
+        for i in range(lFurtek):
+            for j in range(sFurtki):
+                a = int(self.furtka[i].pozycjaX[j])
+                b = int(self.sciana[i].pozycjaY[j])
+                self.plansza[a][b] = 2
+        for i in range(lPolicjantow):
+            a = int(self.policjant[i].pozycjaX)
+            b = int(self.policjant[i].pozycjaY)
+            self.plansza[a][b] = 5
+        a = self.zlodziej.pozycjaX
+        b = self.zlodziej.pozycjaY
+        self.plansza[a][b] = 4
+        
+    
 class Furtki:
     def __init__(self, sFurtki, n, kZegar):
         r1 = randint(0, n-1)
@@ -204,6 +231,7 @@ class Sciany:
     def __init__(self, n, dSciany):
         self.pozycjaX = []
         self.pozycjaY = []
+        self.kierunkiScian = []
         self.pozycjaX.append(randint(1, n-2))
         self.pozycjaY.append(randint(1, n-2))
         punktWe1 = False
