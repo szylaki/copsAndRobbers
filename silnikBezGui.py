@@ -2,6 +2,7 @@ import numpy as np
 import random
 from random import randint
 import time
+from cargui import Gui
 
 n = 20
 T = 20 #przykladowo
@@ -403,11 +404,11 @@ def main():
     swiat = Swiat()
     listaPlansz = []
 	
-	gui = Gui()
+    gui = Gui(n, swiat.plansza)
 	
     for t in range(T):
         tStart = time.time()
-        print(swiat.plansza)#gui
+        print(swiat.plansza, "\n")#gui
         listaPlansz.append(swiat.plansza)
         swiat.ruch(listaPlansz, t)
         if (sprawdzanieZlapania(swiat.zlodziej, swiat.policjant) == 3):
