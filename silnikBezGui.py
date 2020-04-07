@@ -404,7 +404,7 @@ def main():
     listaPlansz = []
     for t in range(T):
         tStart = time.time()
-        print(swiat.plansza)
+        print(swiat.plansza)#gui
         listaPlansz.append(swiat.plansza)
         swiat.ruch(listaPlansz, t)
         if (sprawdzanieZlapania(swiat.zlodziej, swiat.policjant) == 3):
