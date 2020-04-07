@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import (QApplication, QWidget, QGridLayout)
 
 class Gui(QWidget):
     
@@ -6,17 +6,18 @@ class Gui(QWidget):
         super().__init__()
         
         self.n = n
-        self.interface()
-        self.grid = True
+        self.window()
+		self.createGrid()
         
-    def interface(self):
         
+    def window(self):
         self.resize(1024, 768)
         self.setWindowTitle("Cops and Robbers")
         self.show()
         
-    #def createGrid():
-        #grid = [[for x in range()]]
+    def createGrid():
+		grid = QGridLayout()
+        
         
 if __name__ == '__main__':
     import sys
