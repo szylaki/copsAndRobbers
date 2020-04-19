@@ -7,7 +7,7 @@ class Gui(QWidget):
         
         self.n = n
         self.window()
-		self.createGrid()
+        self.createGrid()
         
         
     def window(self):
@@ -16,7 +16,7 @@ class Gui(QWidget):
         self.show()
         
     def createGrid():
-		grid = QGridLayout()
+        grid = QGridLayout()
         
         
 if __name__ == '__main__':
