@@ -49,7 +49,7 @@ cop's range 6
         
 class World:
     def __init__(self):
-        #random.seed(0)
+        random.seed(5)
         self.board = np.zeros((n, n))
         self.worlds_list = []
         self.gate = []
@@ -66,6 +66,9 @@ class World:
         self.cops = cops_thief_threads.Cops(self.worlds_list_copy)
         self.worlds_list_copy.pop()
         self.replacement()
+        self.worlds_list.append(self.board)
+        self.worlds_list_copy.append(copy.copy(self))
+        
         
     def replacement_zero(self):
         self.board = np.zeros((n, n))
@@ -94,10 +97,15 @@ class World:
         if ((len(self.worlds_list_copy)-1) % k == 0):
             self.plan.thread_function(self.worlds_list_copy)
             self.show_moves()
-            
+        self.replacement()
+        self.worlds_list.append(self.board)
+        self.worlds_list_copy.append(copy.copy(self))
         self.cops.move(self.plan.cops_planner.move_plan, self.worlds_list)
         self.thief.move(self.plan.thief_planner.move_plan, self.worlds_list)
         self.replacement()
+        self.worlds_list[-1]=self.board
+        self.worlds_list_copy[-1]=copy.copy(self)
+        
         
             
     def show_moves(self):
@@ -171,8 +179,8 @@ class World:
         b = int(self.thief.positionY)
         self.board[a][b] = 4
         
-        self.worlds_list.append(self.board)
-        self.worlds_list_copy.append(copy.copy(self))
+        """self.worlds_list.append(self.board)
+        self.worlds_list_copy.append(copy.copy(self))"""
  
 class Gates:
     def __init__(self):
